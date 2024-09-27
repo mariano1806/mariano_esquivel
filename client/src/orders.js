@@ -10,13 +10,17 @@ import { listOfOrders } from "./components/listOfOrders";
 const $root = document.getElementById("root");
 
 // Realizar una solicitud para obtener la sesión del usuario actual
-await fetch("http://localhost:4321/auth/me", {})
+fetch("http://localhost:4321/auth/me", {
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+})
   .then((response) => {
     // Verificar si la respuesta es exitosa
     if (response.ok) {
       return response.json(); // Convertir la respuesta a JSON
     } else {
-      return null; // Devolver null si la respuesta no es exitosa
+      throw new Error(response.statusText); // Lanzar un error si la respuesta no es exitosa
     }
   })
   .then((session) => {
@@ -29,4 +33,8 @@ await fetch("http://localhost:4321/auth/me", {})
       // Redirigir al usuario a la página de inicio de sesión
       window.location.href = "/pages/login";
     }
+  })
+  .catch((error) => {
+    console.error(error);
+    Swal.fire({ title: "Error", text: error.message, icon: "error" });
   });

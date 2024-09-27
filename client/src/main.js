@@ -13,25 +13,21 @@ import { services } from "./components/services";
 // Obtener el elemento raíz del DOM donde se montarán los componentes
 const $root = document.getElementById("root");
 
-// Realizar una solicitud para obtener la sesión del usuario actual
-await fetch("http://localhost:4321/auth/me", {})
-  .then((response) => {
-    // Verificar si la respuesta es exitosa
-    if (response.ok) {
-      return response.json(); // Convertir la respuesta a JSON
-    } else {
-      return null; // Devolver null si la respuesta no es exitosa
+// Función para enviar credenciales en todas las solicitudes
+const sendCredentials = async (url, options = {}) => {
+  try {
+    const response = await fetch(url, {
+      ...options,
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
     }
-  })
-  .then((session) => {
-    // Añadir el componente de la barra de navegación al elemento raíz
-    $root.appendChild(navbar(session ? { user: session } : null));
-    // Añadir el componente de héroe al elemento raíz
-    $root.appendChild(hero());
-    // Añadir el componente de servicios al elemento raíz
-    $root.appendChild(services(session ? { user: session } : null));
-  })
-  .catch((error) => {
+
+    return response;
+  } catch (error) {
     console.error("Probablemente el servidor no está corriendo", error);
 
     setTimeout(() => {
@@ -42,4 +38,20 @@ await fetch("http://localhost:4321/auth/me", {})
         confirmButtonText: "Entendido",
       });
     }, 1000);
-  });
+
+    throw error;
+  }
+};
+
+// Realizar una solicitud para obtener la sesión del usuario actual
+sendCredentials("http://localhost:4321/auth/me")
+  .then((response) => response.json())
+  .then((session) => {
+    // Añadir el componente de la barra de navegación al elemento raíz
+    $root.appendChild(navbar(session ? { user: session } : null));
+    // Añadir el componente de héroe al elemento raíz
+    $root.appendChild(hero());
+    // Añadir el componente de servicios al elemento raíz
+    $root.appendChild(services(session ? { user: session } : null));
+  })
+  .catch((error) => console.error(error));

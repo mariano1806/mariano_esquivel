@@ -135,17 +135,42 @@ export const services = (session) => {
 
         const coffe = service.coffee;
 
-        // ! IMPLEMENTAR LÓGICA PARA CREAR UNA ORDEN
+        // Crear una nueva orden
+        const response = await fetch("http://localhost:4321/orders", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            coffee,
+          }),
+        });
+
+        if (response.ok) {
+          // Mostrar mensaje de confirmación
+          Swal.fire({
+            title: "Order created",
+            text: `Your order for ${coffe} has been created successfully`,
+            icon: "success",
+          });
+        } else {
+          const { message } = await response.json();
+          // Mostrar mensaje de error
+          Swal.fire({
+            title: "Error",
+            text: message,
+            icon: "error",
+          });
+        }
       });
     });
   });
 
-  // Anidar el encabezado y la cuadrícula de servicios en el contenedor principal
   containerDiv.appendChild(headingDiv);
   containerDiv.appendChild(gridDiv);
   pyDiv.appendChild(containerDiv);
   fragment.appendChild(pyDiv);
 
-  // Devolver el fragmento de documento completo
   return fragment;
 };

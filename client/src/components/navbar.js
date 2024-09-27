@@ -183,10 +183,31 @@ export function navbar(session = null) {
       "bg-primary/70 hover:scale-105 duration-200 text-white px-4 py-2 rounded-full";
     logoutButton.textContent = "Logout";
 
-    logoutButton.addEventListener("click", () => {
-      // ! HACER EL LOGOUT DEL USUARIO Y REDIRIGIR A LA PÁGINA DE LOGIN
-    });
+    logoutButton.addEventListener("click", async () => {
+      try {
+        // Realizar una solicitud para cerrar la sesión del usuario
+        const response = await fetch("/auth/logout", {
+          method: "POST",
+        });
 
+        if (response.ok) {
+          // Si la respuesta es exitosa, eliminar la cookie de la sesión y redirigir a la página de login
+          document.cookie = "";
+          window.location.href = "/pages/login.html";
+        } else {
+          // Si la respuesta no es exitosa, mostrar un mensaje de error
+          const { message } = await response.json();
+          Swal.fire({
+            title: "Error",
+            text: message,
+            icon: "error",
+            confirmButtonText: "Entendido",
+          });
+        }
+      } catch (error) {
+        console.error("Error al cerrar la sesión", error);
+      }
+    });
     menuDiv.appendChild(logoutButton);
   } else {
     // Si no hay sesión, mostrar el botón de "Login"

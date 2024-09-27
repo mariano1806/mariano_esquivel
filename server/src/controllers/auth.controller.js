@@ -23,15 +23,29 @@ export const signInCtrl = async (req, res) => {
 
 export const signUpCtrl = async (req, res) => {
   try {
-    // ! Completar la función signUpCtrl
+    const { email, username, password } = req.body;
+
+    const existingUser = await getUserByCredentials(email, password);
+
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const newUser = await createUser({ email, username, password });
+
+    const token = await createJwt(newUser.id);
+
+    res.cookie("token", token, { httpOnly: true });
+
+    res.status(201).json({ token, user: newUser });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-export const signOutCtrl = (_req, res) => {
+export const signOutCtrl = (req, res) => {
   try {
-    // ! Completar la función signOutCtrl
+    res.clearCookie("token");
     res.status(200).json({ message: "Sign out success" });
   } catch (error) {
     res.status(500).json({ message: error.message });
